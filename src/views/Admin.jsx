@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { LogOut, BarChart3, Lock, User } from "lucide-react";
 import DashboardContent from "./DashboardContent";
 import SesionAdmin from "./SesionAdmin";
+import GestionDenuncia from "./GestionDenuncia";
 const AdminPanel = ({
   isAuthenticated,
   setIsAuthenticated,
@@ -79,9 +81,7 @@ const AdminPanel = ({
       )}
 
       {/* Gestión View */}
-      {activeView === "gestion" && (
-        <div style={{ padding: "20px" }}>Gestión de denuncias - por hacer</div>
-      )}
+      {activeView === "gestion" && <GestionDenuncia />}
 
       <style>{`
         @keyframes pulse {

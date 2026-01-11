@@ -139,6 +139,40 @@ export default function Navegation({ view, setView }) {
         </button>
 
         <button
+          onClick={() => setView("mapa")}
+          style={{
+            background: view === "mapa" ? "white" : "transparent",
+            color: view === "mapa" ? "#667eea" : "white",
+            border: "none",
+            padding: "12px 24px",
+            borderRadius: "10px",
+            fontSize: "15px",
+            fontWeight: "800",
+            cursor: "pointer",
+            transition: "all 0.3s ease",
+            fontFamily: "inherit",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            boxShadow:
+              view === "mapa" ? "0 4px 12px rgba(0, 0, 0, 0.1)" : "none",
+          }}
+          onMouseEnter={(e) => {
+            if (view !== "mapa") {
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (view !== "mapa") {
+              e.currentTarget.style.background = "transparent";
+            }
+          }}
+        >
+          <Search size={18} strokeWidth={2.5} />
+          Mapa público
+        </button>
+
+        <button
           onClick={() => setView("admin")}
           style={{
             background: view === "admin" ? "white" : "transparent",

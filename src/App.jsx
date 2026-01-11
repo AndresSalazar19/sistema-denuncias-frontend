@@ -2,6 +2,7 @@ import { useState } from "react";
 import Navegation from "./views/Navegation";
 import AdminPanel from "./views/Admin";
 import NavegationAdmin from "./views/NavegationAdmin";
+import EstadisticasPublicas from "./views/EstadisticasPublicas";
 import "./App.css";
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
     <>
       {((view === "admin" && !isAuthenticated) ||
         view === "registro" ||
+        view === "mapa" ||
         view === "consulta") && <Navegation view={view} setView={setView} />}
       {view === "admin" && isAuthenticated && (
         <NavegationAdmin
@@ -46,6 +48,7 @@ function App() {
           setCredentials={setCredentials}
         />
       )}
+      {view === "mapa" && <EstadisticasPublicas />}
     </>
   );
 }
