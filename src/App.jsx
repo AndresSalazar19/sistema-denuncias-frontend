@@ -3,7 +3,8 @@ import Navegation from "./views/Navegation";
 import AdminPanel from "./views/Admin";
 import NavegationAdmin from "./views/NavegationAdmin";
 import EstadisticasPublicas from "./views/EstadisticasPublicas";
-
+import Registro from "./views/registro";
+import Consulta from "./views/consulta";
 import "./App.css";
 
 export const ESTADOS_ORDENADOS = ["Nueva", "Revisión", "Proceso", "Resuelta"];
