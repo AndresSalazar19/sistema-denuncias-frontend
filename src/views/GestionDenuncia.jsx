@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import DetalleDenuncia from "./DetalleDenuncia";
 
 export default function GestionDenuncia() {
   const [selectedDenuncia, setSelectedDenuncia] = useState(null);
@@ -10,7 +11,7 @@ export default function GestionDenuncia() {
   });
 
   // Mock data
-  const denuncias = [
+  const [denuncias, setDenuncias] = useState([
     {
       codigo: "DEN-A7K9M3",
       titulo: "Bache peligroso en avenida principal",
@@ -60,7 +61,7 @@ export default function GestionDenuncia() {
       evidencias: ["Img 1", "Img 2"],
       funcionario: "Juan Pérez",
     },
-  ];
+  ]);
 
   const estadoColors = {
     Revisión: { bg: "#fef3c7", color: "#f59e0b", border: "#fbbf24" },
@@ -97,6 +98,31 @@ export default function GestionDenuncia() {
 
     return true;
   });
+
+  const handleCloseModal = () => {
+    setSelectedDenuncia(null);
+  };
+
+  const handleActualizar = (codigo, estado) => {
+    setDenuncias((prev) =>
+      prev.map((d) => (d.codigo === codigo ? { ...d, estado: estado } : d))
+    );
+
+    setSelectedDenuncia((prev) => ({
+      ...prev,
+      estado: estado,
+    }));
+    alert("Estado actualizado correctamente");
+    setSelectedDenuncia(null);
+  };
+
+  const handleAsignar = () => {
+    alert("Funcionario asignado correctamente");
+  };
+
+  const handleNotificar = () => {
+    alert("Cambios notificados al usuario");
+  };
   return (
     <>
       {!selectedDenuncia && (
@@ -555,9 +581,14 @@ export default function GestionDenuncia() {
             padding: "0",
           }}
         >
-          <div style={{ padding: "32px", maxWidth: "800px", margin: "0 auto" }}>
-            Por hacer: Detalle de Denuncia
-          </div>
+          <DetalleDenuncia
+            handleActualizar={handleActualizar}
+            handleAsignar={handleAsignar}
+            handleNotificar={handleNotificar}
+            selectedDenuncia={selectedDenuncia}
+            handleCloseModal={handleCloseModal}
+            estadoColors={estadoColors}
+          />
           <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
         

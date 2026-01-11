@@ -4,7 +4,7 @@ import AdminPanel from "./views/Admin";
 import NavegationAdmin from "./views/NavegationAdmin";
 import EstadisticasPublicas from "./views/EstadisticasPublicas";
 import "./App.css";
-
+export const ESTADOS_ORDENADOS = ["Nueva", "Revisión", "Proceso", "Resuelta"];
 function App() {
   const [view, setView] = useState("registro"); // 'registro', 'consulta', 'admin'
   const [activeView, setActiveView] = useState("dashboard");
