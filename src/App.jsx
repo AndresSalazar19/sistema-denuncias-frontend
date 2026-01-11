@@ -1,35 +1,53 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import Navegation from "./views/Navegation";
+import AdminPanel from "./views/Admin";
+import NavegationAdmin from "./views/NavegationAdmin";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [view, setView] = useState("registro"); // 'registro', 'consulta', 'admin'
+  const [activeView, setActiveView] = useState("dashboard");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [credentials, setCredentials] = useState({
+    username: "",
+    password: "",
+  });
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setCredentials({ username: "", password: "" });
+    setActiveView("dashboard");
+  };
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      {((view === "admin" && !isAuthenticated) ||
+        view === "registro" ||
+        view === "consulta") && <Navegation view={view} setView={setView} />}
+      {view === "admin" && isAuthenticated && (
+        <NavegationAdmin
+          setActiveView={setActiveView}
+          activeView={activeView}
+          handleLogout={handleLogout}
+        />
+      )}
+      {view === "registro" && (
+        // Registro View
+        <div style={{ padding: "20px" }}>por hacer</div>
+      )}
+      {view === "consulta" && <div style={{ padding: "20px" }}>por hacer</div>}
+      {view === "admin" && (
+        <AdminPanel
+          isAuthenticated={isAuthenticated}
+          setIsAuthenticated={setIsAuthenticated}
+          setActiveView={setActiveView}
+          activeView={activeView}
+          credentials={credentials}
+          setCredentials={setCredentials}
+        />
+      )}
     </>
-  )
+  );
 }
 
-export default App
+export default App;
