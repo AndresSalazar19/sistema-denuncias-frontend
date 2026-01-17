@@ -5,9 +5,16 @@ import NavegationAdmin from "./views/NavegationAdmin";
 import EstadisticasPublicas from "./views/EstadisticasPublicas";
 import Registro from "./views/registro";
 import Consulta from "./views/consulta";
+import { logout } from "./functions/authService";
 import "./App.css";
 
-export const ESTADOS_ORDENADOS = ["Nueva", "Revisión", "Proceso", "Resuelta"];
+export const ESTADOS_ORDENADOS = [
+  "Nueva",
+  "En Revisión",
+  "En Proceso",
+  "Resuelta",
+  "Rechazada",
+];
 function App() {
   const [view, setView] = useState("registro"); // 'registro', 'consulta', 'admin'
   const [activeView, setActiveView] = useState("dashboard");
@@ -24,9 +31,12 @@ function App() {
   const [credentials, setCredentials] = useState({
     username: "",
     password: "",
+    id: "",
   });
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logout();
+    alert("Sesión cerrada");
     setIsAuthenticated(false);
     setCredentials({ username: "", password: "" });
     setActiveView("dashboard");
@@ -74,7 +84,7 @@ function App() {
   const handleSubmit = () => {
     alert(
       "Denuncia enviada con éxito. Código de seguimiento: #DEN-2025-" +
-        Math.random().toString(36).substr(2, 6).toUpperCase()
+        Math.random().toString(36).substr(2, 6).toUpperCase(),
     );
     // Reset form
     setFormData({
@@ -104,6 +114,7 @@ function App() {
           setActiveView={setActiveView}
           activeView={activeView}
           handleLogout={handleLogout}
+          credentials={credentials}
         />
       )}
       {view === "registro" && (

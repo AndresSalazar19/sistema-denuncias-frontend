@@ -1,8 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { getDenuncias } from "../functions/utilitarioService";
+import {
+  cambiarEstadoDenuncia,
+  asignarResponsable,
+  agregarNotaInterna,
+} from "../functions/adminService";
 import DetalleDenuncia from "./DetalleDenuncia";
 
-export default function GestionDenuncia() {
+export default function GestionDenuncia({ credentials }) {
   const [selectedDenuncia, setSelectedDenuncia] = useState(null);
   const [filters, setFilters] = useState({
     estado: "",
@@ -11,64 +17,28 @@ export default function GestionDenuncia() {
   });
 
   // Mock data
-  const [denuncias, setDenuncias] = useState([
-    {
-      codigo: "DEN-A7K9M3",
-      titulo: "Bache peligroso en avenida principal",
-      categoria: "Infraestructura",
-      estado: "Revisión",
-      fecha: "14/12/25",
-      fechaCompleta: "14/12/2025 - 10:30 AM",
-      descripcion:
-        "Existe un bache de aproximadamente 50cm de profundidad que ha causado varios accidentes",
-      ubicacion: "Av. Principal esq. Calle 5",
-      evidencias: ["Img 1", "Img 2"],
-      funcionario: "",
-    },
-    {
-      codigo: "DEN-B2N4P7",
-      categoria: "Seguridad",
-      estado: "Nueva",
-      fecha: "13/12/25",
-      fechaCompleta: "13/12/2025 - 15:45 PM",
-      titulo: "Falta de iluminación en parque",
-      descripcion: "El parque central no tiene iluminación nocturna",
-      ubicacion: "Parque Central",
-      evidencias: [],
-      funcionario: "",
-    },
-    {
-      codigo: "DEN-C5M8Q1",
-      categoria: "Medio Ambiente",
-      estado: "Proceso",
-      fecha: "12/12/25",
-      fechaCompleta: "12/12/2025 - 09:20 AM",
-      titulo: "Basura acumulada en esquina",
-      descripcion: "Acumulación de basura desde hace una semana",
-      ubicacion: "Calle 10 y Av. 5",
-      evidencias: ["Img 1"],
-      funcionario: "",
-    },
-    {
-      codigo: "DEN-D9L3R6",
-      categoria: "Serv. Públicos",
-      estado: "Resuelta",
-      fecha: "11/12/25",
-      fechaCompleta: "11/12/2025 - 14:00 PM",
-      titulo: "Fuga de agua en tubería principal",
-      descripcion: "Fuga significativa en tubería de agua potable",
-      ubicacion: "Av. 8 Norte",
-      evidencias: ["Img 1", "Img 2"],
-      funcionario: "Juan Pérez",
-    },
-  ]);
+  const [denuncias, setDenuncias] = useState([]);
 
   const estadoColors = {
-    Revisión: { bg: "#fef3c7", color: "#f59e0b", border: "#fbbf24" },
+    "En Revisión": { bg: "#fef3c7", color: "#f59e0b", border: "#fbbf24" },
     Nueva: { bg: "#d1fae5", color: "#10b981", border: "#34d399" },
-    Proceso: { bg: "#dbeafe", color: "#3b82f6", border: "#60a5fa" },
+    "En Proceso": { bg: "#dbeafe", color: "#3b82f6", border: "#60a5fa" },
     Resuelta: { bg: "#f3e8ff", color: "#a855f7", border: "#c084fc" },
+    Rechazada: { bg: "#fee2e2", color: "#ef4444", border: "#f87171" },
   };
+
+  useEffect(() => {
+    async function cargarDenuncias() {
+      try {
+        const data = await getDenuncias();
+        setDenuncias(data);
+      } catch (error) {
+        console.error("Error al cargar denuncias", error);
+      }
+    }
+
+    cargarDenuncias();
+  }, []);
 
   const handleVerDetalle = (denuncia) => {
     setSelectedDenuncia(denuncia);
@@ -103,25 +73,42 @@ export default function GestionDenuncia() {
     setSelectedDenuncia(null);
   };
 
-  const handleActualizar = (codigo, estado) => {
-    setDenuncias((prev) =>
-      prev.map((d) => (d.codigo === codigo ? { ...d, estado: estado } : d))
-    );
-
-    setSelectedDenuncia((prev) => ({
-      ...prev,
-      estado: estado,
-    }));
-    alert("Estado actualizado correctamente");
-    setSelectedDenuncia(null);
+  const handleActualizar = async (codigo, estado) => {
+    try {
+      await cambiarEstadoDenuncia(codigo, estado, credentials.id);
+      setDenuncias((prev) =>
+        prev.map((d) => (d.codigo === codigo ? { ...d, estado: estado } : d)),
+      );
+      setSelectedDenuncia((prev) => ({
+        ...prev,
+        estado: estado,
+      }));
+      alert("Estado actualizado correctamente");
+      setSelectedDenuncia(null);
+    } catch (error) {
+      alert("Error al actualizar el estado: " + error.message);
+      return;
+    }
   };
 
-  const handleAsignar = () => {
-    alert("Funcionario asignado correctamente");
+  const handleAsignar = async (codigo, newResponsable) => {
+    try {
+      await asignarResponsable(codigo, newResponsable);
+      alert("Funcionario asignado correctamente");
+    } catch (error) {
+      alert("Error al asignar el funcionario: " + error.message);
+      return;
+    }
   };
 
-  const handleNotificar = () => {
-    alert("Cambios notificados al usuario");
+  const handleAgregarNota = async (codigo, nota) => {
+    try {
+      await agregarNotaInterna(codigo, nota, credentials.id);
+      alert("Nota interna agregada correctamente");
+    } catch (error) {
+      alert("Error al agregar la nota interna: " + error.message);
+      return;
+    }
   };
   return (
     <>
@@ -369,106 +356,112 @@ export default function GestionDenuncia() {
               </div>
 
               {/* Table Body */}
-              {denunciasFiltradas.map((denuncia, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "180px 200px 150px 130px 100px",
-                    padding: "20px 24px",
-                    borderBottom:
-                      idx < denunciasFiltradas.length - 1
-                        ? "1px solid #f1f5f9"
-                        : "none",
-                    alignItems: "center",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#f8fafc";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "white";
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "15px",
-                      fontWeight: "800",
-                      color: "#1e293b",
-                      letterSpacing: "-0.3px",
-                    }}
-                  >
-                    {denuncia.codigo}
-                  </div>
-
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: "600",
-                      color: "#475569",
-                    }}
-                  >
-                    {denuncia.categoria}
-                  </div>
-
-                  <div>
-                    <span
+              {denunciasFiltradas &&
+                denunciasFiltradas.map((denuncia, idx) => {
+                  const estadoStyle = estadoColors[denuncia.estado] || {
+                    bg: "#f3f4f6",
+                    color: "#6b7280",
+                    border: "#d1d5db",
+                  };
+                  return (
+                    <div
+                      key={idx}
                       style={{
-                        display: "inline-block",
-                        padding: "6px 16px",
-                        borderRadius: "20px",
-                        fontSize: "13px",
-                        fontWeight: "800",
-                        background: estadoColors[denuncia.estado].bg,
-                        color: estadoColors[denuncia.estado].color,
-                        border: `2px solid ${
-                          estadoColors[denuncia.estado].border
-                        }`,
-                      }}
-                    >
-                      {denuncia.estado}
-                    </span>
-                  </div>
-
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: "600",
-                      color: "#64748b",
-                    }}
-                  >
-                    {denuncia.fecha}
-                  </div>
-
-                  <div>
-                    <button
-                      onClick={() => handleVerDetalle(denuncia)}
-                      style={{
-                        background: "#0ea5e9",
-                        border: "none",
-                        padding: "8px 20px",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        display: "flex",
+                        display: "grid",
+                        gridTemplateColumns: "180px 200px 150px 130px 100px",
+                        padding: "20px 24px",
+                        borderBottom:
+                          idx < denunciasFiltradas.length - 1
+                            ? "1px solid #f1f5f9"
+                            : "none",
                         alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow: "0 2px 8px rgba(14, 165, 233, 0.3)",
+                        transition: "all 0.2s ease",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#0284c7";
-                        e.currentTarget.style.transform = "scale(1.05)";
+                        e.currentTarget.style.background = "#f8fafc";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "#0ea5e9";
-                        e.currentTarget.style.transform = "scale(1)";
+                        e.currentTarget.style.background = "white";
                       }}
                     >
-                      <Eye size={18} color="white" strokeWidth={2.5} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                      <div
+                        style={{
+                          fontSize: "15px",
+                          fontWeight: "800",
+                          color: "#1e293b",
+                          letterSpacing: "-0.3px",
+                        }}
+                      >
+                        {denuncia.codigo}
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: "600",
+                          color: "#475569",
+                        }}
+                      >
+                        {denuncia.categoria}
+                      </div>
+
+                      <div>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            padding: "6px 16px",
+                            borderRadius: "20px",
+                            fontSize: "13px",
+                            fontWeight: "800",
+                            background: estadoStyle.bg,
+                            color: estadoStyle.color,
+                            border: `2px solid ${estadoStyle.border}`,
+                          }}
+                        >
+                          {denuncia.estado}
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: "600",
+                          color: "#64748b",
+                        }}
+                      >
+                        {denuncia.fecha}
+                      </div>
+
+                      <div>
+                        <button
+                          onClick={() => handleVerDetalle(denuncia)}
+                          style={{
+                            background: "#0ea5e9",
+                            border: "none",
+                            padding: "8px 20px",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            transition: "all 0.2s ease",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            boxShadow: "0 2px 8px rgba(14, 165, 233, 0.3)",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "#0284c7";
+                            e.currentTarget.style.transform = "scale(1.05)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "#0ea5e9";
+                            e.currentTarget.style.transform = "scale(1)";
+                          }}
+                        >
+                          <Eye size={18} color="white" strokeWidth={2.5} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
             </div>
 
             {/* Pagination */}
@@ -584,7 +577,7 @@ export default function GestionDenuncia() {
           <DetalleDenuncia
             handleActualizar={handleActualizar}
             handleAsignar={handleAsignar}
-            handleNotificar={handleNotificar}
+            handleAgregarNota={handleAgregarNota}
             selectedDenuncia={selectedDenuncia}
             handleCloseModal={handleCloseModal}
             estadoColors={estadoColors}

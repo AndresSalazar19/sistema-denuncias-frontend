@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { LogOut, BarChart3, Lock, User } from "lucide-react";
+import { login } from "../functions/authService";
 import DashboardContent from "./DashboardContent";
 import SesionAdmin from "./SesionAdmin";
 import GestionDenuncia from "./GestionDenuncia";
@@ -16,17 +17,16 @@ const AdminPanel = ({
   const [error, setError] = useState("");
 
   // Mock login handler
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Demo credentials
-    if (
-      credentials.username === "admin" &&
-      credentials.password === "admin123"
-    ) {
+    try {
+      const response = await login(credentials.username, credentials.password);
+      credentials.id = response.id;
+      alert("Login exitoso");
       setIsAuthenticated(true);
       setError("");
-    } else {
-      setError("Usuario o contraseña incorrectos");
+    } catch (error) {
+      alert(error.message);
     }
   };
 
@@ -81,7 +81,9 @@ const AdminPanel = ({
       )}
 
       {/* Gestión View */}
-      {activeView === "gestion" && <GestionDenuncia />}
+      {activeView === "gestion" && (
+        <GestionDenuncia credentials={credentials} />
+      )}
 
       <style>{`
         @keyframes pulse {
