@@ -4,6 +4,7 @@ export default function NavegationAdmin({
   setActiveView,
   activeView,
   handleLogout,
+  credentials,
 }) {
   return (
     <div
@@ -130,7 +131,7 @@ export default function NavegationAdmin({
               fontWeight: "800",
             }}
           >
-            J. Perez
+            {credentials.username}
           </span>
           <div
             style={{
