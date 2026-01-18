@@ -255,65 +255,6 @@ export default function GestionDenuncia({ credentials }) {
                   }}
                 />
               </div>
-
-              {/* Buscar Button */}
-              <button
-                style={{
-                  background: "#10b981",
-                  color: "white",
-                  border: "none",
-                  padding: "10px 28px",
-                  borderRadius: "10px",
-                  fontSize: "15px",
-                  fontWeight: "800",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  fontFamily: "inherit",
-                  boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#059669";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#10b981";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                Buscar
-              </button>
-
-              {/* Nueva Button */}
-              <button
-                style={{
-                  background: "#f59e0b",
-                  color: "white",
-                  border: "none",
-                  padding: "10px 28px",
-                  borderRadius: "10px",
-                  fontSize: "15px",
-                  fontWeight: "800",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  fontFamily: "inherit",
-                  marginLeft: "auto",
-                  boxShadow: "0 2px 8px rgba(245, 158, 11, 0.3)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#d97706";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#f59e0b";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                <span style={{ fontSize: "18px", fontWeight: "900" }}>+</span>{" "}
-                Nueva
-              </button>
             </div>
           </div>
 

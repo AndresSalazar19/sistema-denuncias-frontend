@@ -6,7 +6,7 @@ import {
   getNotasInternas,
   getHistorialEstados,
 } from "../functions/adminService";
-import { LogicAnd } from "tabler-icons-react";
+import MapaEstatico from "../components/Mapa";
 
 export default function DetalleDenuncia({
   handleActualizar,
@@ -23,6 +23,7 @@ export default function DetalleDenuncia({
   const [notaInterna, setNotaInterna] = useState("");
   const [historialEstados, setHistorialEstados] = useState([]);
   const [notasInternas, setNotasInternas] = useState([]);
+  const [mostrarMapa, setMostrarMapa] = useState(false);
 
   const indiceEstadoActual = ESTADOS_ORDENADOS.indexOf(selectedDenuncia.estado);
 
@@ -577,6 +578,7 @@ export default function DetalleDenuncia({
               📍 Ubicación:
             </h3>
             <div
+              onClick={() => setMostrarMapa(true)}
               style={{
                 position: "relative",
                 height: "180px",
@@ -588,6 +590,17 @@ export default function DetalleDenuncia({
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "12px",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-4px)";
+                e.currentTarget.style.boxShadow =
+                  "0 8px 24px rgba(16, 185, 129, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
               }}
             >
               <MapPin
@@ -604,6 +617,18 @@ export default function DetalleDenuncia({
                 }}
               >
                 {selectedDenuncia.ubicacion}
+              </span>
+              <span
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "700",
+                  color: "#059669",
+                  background: "rgba(255, 255, 255, 0.6)",
+                  padding: "6px 16px",
+                  borderRadius: "8px",
+                }}
+              >
+                Click para ver mapa
               </span>
             </div>
           </div>
@@ -780,6 +805,7 @@ export default function DetalleDenuncia({
                           cursor: "pointer",
                           appearance: "none",
                           background: "white",
+                          color: "black",
                         }}
                         value={responsable || ""}
                         onChange={(e) => setResponsable(Number(e.target.value))}
@@ -1049,6 +1075,14 @@ export default function DetalleDenuncia({
           </div>
         </div>
       </div>
+
+      {/* Modal del Mapa Estático */}
+      <MapaEstatico
+        isOpen={mostrarMapa}
+        onClose={() => setMostrarMapa(false)}
+        ubicacion={selectedDenuncia.ubicacion}
+        titulo={selectedDenuncia.titulo}
+      />
     </div>
   );
 }
