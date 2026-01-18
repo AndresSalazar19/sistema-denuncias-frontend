@@ -7,6 +7,7 @@ import Registro from "./views/registro";
 import Consulta from "./views/consulta";
 import { logout } from "./functions/authService";
 import "./App.css";
+import 'leaflet/dist/leaflet.css';
 
 export const ESTADOS_ORDENADOS = [
   "Nueva",

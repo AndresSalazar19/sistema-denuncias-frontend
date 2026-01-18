@@ -1,16 +1,136 @@
-import React from "react";
+import React, { useState } from "react";
 import { MapPin, Plus } from "tabler-icons-react";
+import MapModal from "./MapModal"; // Asegúrate de tener este componente
 
-export default function Registro({
-  categorias,
-  setFormData,
-  formData,
-  selectedLocation,
-  evidencias,
-  handleMapClick,
-  handleAddEvidence,
-  handleSubmit,
-}) {
+export default function Registro() {
+  const [formData, setFormData] = useState({
+    titulo: "",
+    descripcion: "",
+    categoria: "",
+    ubicacion_lat: null,
+    ubicacion_lng: null,
+  });
+
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const [evidencias, setEvidencias] = useState([]);
+
+  const categorias = [
+    { id: "infraestructura", label: "Infraestructura", icon: "🏗️" },
+    { id: "seguridad", label: "Seguridad", icon: "🚨" },
+    { id: "servicios_publicos", label: "Servicios Públicos", icon: "💡" },
+    { id: "medio_ambiente", label: "Medio Ambiente", icon: "🌱" },
+    { id: "corrupcion", label: "Corrupción", icon: "⚖️" },
+  ];
+
+  const handleMapClick = () => {
+    setIsMapOpen(true);
+  };
+
+  const handleSelectLocation = (location) => {
+    setSelectedLocation(location);
+    setFormData({
+      ...formData,
+      ubicacion_lat: location.lat,
+      ubicacion_lng: location.lng,
+    });
+  };
+
+  const handleAddEvidence = () => {
+    if (evidencias.length >= 3) {
+      alert("Máximo 3 imágenes permitidas");
+      return;
+    }
+
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        // Validar tamaño (máximo 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          alert("La imagen debe pesar máximo 5MB");
+          return;
+        }
+        setEvidencias([...evidencias, { id: Date.now(), file, preview: URL.createObjectURL(file) }]);
+      }
+    };
+    input.click();
+  };
+
+  const handleRemoveEvidence = (id) => {
+    setEvidencias(evidencias.filter((ev) => ev.id !== id));
+  };
+
+  const handleSubmit = async () => {
+    // Validaciones
+    if (!formData.titulo.trim()) {
+      alert("Por favor ingresa un título");
+      return;
+    }
+
+    if (!formData.descripcion.trim()) {
+      alert("Por favor ingresa una descripción");
+      return;
+    }
+
+    if (!formData.categoria) {
+      alert("Por favor selecciona una categoría");
+      return;
+    }
+
+    if (!selectedLocation) {
+      alert("Por favor selecciona una ubicación en el mapa");
+      return;
+    }
+
+    // Crear FormData para enviar archivos
+    const submitData = new FormData();
+    submitData.append("titulo", formData.titulo);
+    submitData.append("descripcion", formData.descripcion);
+    submitData.append("categoria", formData.categoria);
+    submitData.append("ubicacion_lat", formData.ubicacion_lat);
+    submitData.append("ubicacion_lng", formData.ubicacion_lng);
+
+    // Agregar imágenes
+    evidencias.forEach((ev, index) => {
+      submitData.append(`imagenes[${index}]`, ev.file);
+    });
+
+    try {
+      // Cambiar esta URL por tu endpoint de Laravel
+      const response = await fetch("http://localhost:8000/api/denuncias", {
+        method: "POST",
+        body: submitData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert(
+          `✅ Denuncia registrada exitosamente!\n\nCódigo de seguimiento: ${data.codigo}\n\nGuarda este código para consultar tu denuncia.`
+        );
+
+        // Resetear formulario
+        setFormData({
+          titulo: "",
+          descripcion: "",
+          categoria: "",
+          ubicacion_lat: null,
+          ubicacion_lng: null,
+        });
+        setSelectedLocation(null);
+        setEvidencias([]);
+      } else {
+        const error = await response.json();
+        alert("Error al registrar denuncia: " + JSON.stringify(error));
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Error de conexión: " + error.message);
+    }
+  };
+
   return (
     <div
       style={{
@@ -99,6 +219,7 @@ export default function Registro({
               onChange={(e) =>
                 setFormData({ ...formData, titulo: e.target.value })
               }
+              maxLength={200}
               style={{
                 width: "100%",
                 padding: "14px 16px",
@@ -209,6 +330,7 @@ export default function Registro({
               onChange={(e) =>
                 setFormData({ ...formData, descripcion: e.target.value })
               }
+              maxLength={1000}
               rows={4}
               style={{
                 width: "100%",
@@ -225,6 +347,9 @@ export default function Registro({
               onFocus={(e) => (e.target.style.borderColor = "#667eea")}
               onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")}
             />
+            <p style={{ margin: "8px 0 0 0", fontSize: "13px", color: "#94a3b8", fontWeight: "500" }}>
+              {formData.descripcion.length}/1000 caracteres
+            </p>
           </div>
 
           {/* Ubicación */}
@@ -326,6 +451,23 @@ export default function Registro({
                 </div>
               )}
             </div>
+            
+            {/* Mostrar coordenadas cuando estén seleccionadas */}
+            {selectedLocation && (
+              <div
+                style={{
+                  marginTop: "12px",
+                  padding: "12px 16px",
+                  background: "#f0f9ff",
+                  border: "2px solid #bae6fd",
+                  borderRadius: "10px",
+                }}
+              >
+                <p style={{ margin: 0, fontSize: "13px", fontWeight: "700", color: "#0369a1" }}>
+                  Coordenadas: Lat {selectedLocation.lat.toFixed(6)} | Lng {selectedLocation.lng.toFixed(6)}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Evidencias */}
@@ -353,16 +495,47 @@ export default function Registro({
                 <div
                   key={ev.id}
                   style={{
+                    position: "relative",
                     aspectRatio: "1",
                     background: "#f1f5f9",
                     borderRadius: "12px",
-                    border: "2px dashed #cbd5e1",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    border: "2px solid #cbd5e1",
+                    overflow: "hidden",
                   }}
                 >
-                  <span style={{ fontSize: "32px" }}>📷</span>
+                  {ev.preview && (
+                    <img
+                      src={ev.preview}
+                      alt="Evidencia"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  )}
+                  <button
+                    onClick={() => handleRemoveEvidence(ev.id)}
+                    style={{
+                      position: "absolute",
+                      top: "6px",
+                      right: "6px",
+                      width: "24px",
+                      height: "24px",
+                      borderRadius: "50%",
+                      background: "rgba(239, 68, 68, 0.9)",
+                      border: "none",
+                      color: "white",
+                      fontSize: "16px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    ×
+                  </button>
                 </div>
               ))}
               {evidencias.length < 3 && (
@@ -393,6 +566,9 @@ export default function Registro({
                 </button>
               )}
             </div>
+            <p style={{ margin: "8px 0 0 0", fontSize: "13px", color: "#94a3b8", fontWeight: "500" }}>
+              Máximo 3 imágenes, 5MB cada una
+            </p>
           </div>
 
           {/* Submit Button */}
@@ -429,12 +605,20 @@ export default function Registro({
         </div>
       </div>
 
+      {/* Modal del Mapa */}
+      <MapModal
+        isOpen={isMapOpen}
+        onClose={() => setIsMapOpen(false)}
+        onSelectLocation={handleSelectLocation}
+        initialLocation={selectedLocation}
+      />
+
       <style>{`
-          @keyframes bounce {
-            0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-            50% { transform: translate(-50%, -50%) translateY(-10px); }
-          }
-        `}</style>
+        @keyframes bounce {
+          0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+          50% { transform: translate(-50%, -50%) translateY(-10px); }
+        }
+      `}</style>
     </div>
   );
 }
