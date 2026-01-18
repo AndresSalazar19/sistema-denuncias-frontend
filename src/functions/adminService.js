@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:8081/api";
+const API_URL = "http://127.0.0.1:8000/api";
 
 /**
  * Obtiene el token JWT desde localStorage
@@ -150,4 +150,24 @@ export async function getNotasInternas(codigoSeguimiento) {
   }
   const data = await response.json();
   return data.notas_internas;
+}
+
+/**
+ * Obtener estadísticas del dashboard (ADMIN)
+ */
+export async function getEstadisticas() {
+  const response = await fetch(`${API_URL}/estadisticas`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (response.status === 401) {
+    throw new Error("No autorizado. Inicia sesión nuevamente.");
+  }
+
+  if (!response.ok) {
+    throw new Error("Error al obtener las estadísticas");
+  }
+
+  return response.json();
 }
