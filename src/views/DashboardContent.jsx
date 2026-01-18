@@ -1,5 +1,193 @@
-import React from "react";
-export default function DashboardContent({ heatmapPoints, trendData }) {
+import React, { useState, useEffect } from "react";
+import { getEstadisticas } from "../functions/adminService";
+
+export default function DashboardContent() {
+  const [loading, setLoading] = useState(true);
+  const [estadisticas, setEstadisticas] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    cargarEstadisticas();
+  }, []);
+
+  const cargarEstadisticas = async () => {
+    try {
+      setLoading(true);
+      const data = await getEstadisticas();
+      setEstadisticas(data);
+      setError(null);
+    } catch (err) {
+      console.error("Error al cargar estadísticas:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          maxWidth: "1400px",
+          margin: "0 auto",
+          padding: "32px 24px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "400px",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "18px",
+            fontWeight: "700",
+            color: "#64748b",
+          }}
+        >
+          Cargando estadísticas...
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        style={{
+          maxWidth: "1400px",
+          margin: "0 auto",
+          padding: "32px 24px",
+        }}
+      >
+        <div
+          style={{
+            background: "#fee2e2",
+            border: "2px solid #ef4444",
+            borderRadius: "12px",
+            padding: "20px",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "16px",
+              fontWeight: "800",
+              color: "#991b1b",
+            }}
+          >
+            Error al cargar estadísticas
+          </div>
+          <div
+            style={{
+              fontSize: "14px",
+              fontWeight: "600",
+              color: "#b91c1c",
+              marginTop: "8px",
+            }}
+          >
+            {error}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!estadisticas) {
+    return null;
+  }
+
+  // Calcular totales por estado
+  const totalDenuncias = estadisticas.stats_estados.reduce(
+    (sum, estado) => sum + estado.total,
+    0,
+  );
+
+  // Obtener estadísticas por estado (asumiendo que los estados son: Nueva, En Proceso, Resuelta, etc.)
+  const getEstadoTotal = (slug) => {
+    const estado = estadisticas.stats_estados.find((e) => e.slug === slug);
+    return estado ? estado.total : 0;
+  };
+
+  // Colores por estado
+  const estadoColors = {
+    nueva: { color: "#3b82f6", name: "Nueva" },
+    "en-revision": { color: "#f59e0b", name: "En Revisión" },
+    "en-proceso": { color: "#f59e0b", name: "En Proceso" },
+    resuelta: { color: "#10b981", name: "Resuelta" },
+    cerrada: { color: "#a855f7", name: "Cerrada" },
+  };
+
+  // Preparar datos para el gráfico de pastel (categorías)
+  const totalCategorias = estadisticas.stats_categorias.reduce(
+    (sum, cat) => sum + cat.total,
+    0,
+  );
+
+  const categoriasConPorcentaje = estadisticas.stats_categorias.map(
+    (cat, idx) => {
+      const porcentaje = (cat.total / totalCategorias) * 100;
+      const colores = ["#a855f7", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
+      return {
+        ...cat,
+        porcentaje,
+        color: colores[idx % colores.length],
+      };
+    },
+  );
+
+  // Calcular los arcos del gráfico de pastel
+  const calcularArcos = () => {
+    let acumulado = 0;
+    const circunferencia = 2 * Math.PI * 90; // radio = 90
+
+    return categoriasConPorcentaje.map((cat) => {
+      const longitudArco = (cat.porcentaje / 100) * circunferencia;
+      const offset = -acumulado;
+      acumulado += longitudArco;
+
+      return {
+        ...cat,
+        strokeDasharray: `${longitudArco} ${circunferencia}`,
+        strokeDashoffset: offset,
+      };
+    });
+  };
+
+  const arcosPastel = calcularArcos();
+
+  // Preparar puntos del mapa de calor
+  const heatmapPoints = estadisticas.mapa_calor.map((punto, idx) => {
+    // Convertir coordenadas a porcentajes para posicionamiento
+    // Ajustar según el rango de tus coordenadas
+    const latMin = -2.3;
+    const latMax = -2.0;
+    const lngMin = -80.0;
+    const lngMax = -79.7;
+
+    const x = ((parseFloat(punto.lng) - lngMin) / (lngMax - lngMin)) * 100;
+    const y = ((latMax - parseFloat(punto.lat)) / (latMax - latMin)) * 100;
+
+    // Contar denuncias en el mismo punto para intensidad
+    const intensidad = estadisticas.mapa_calor.filter(
+      (p) => p.lat === punto.lat && p.lng === punto.lng,
+    ).length;
+
+    return {
+      x: Math.max(5, Math.min(95, x)), // Limitar entre 5% y 95%
+      y: Math.max(5, Math.min(95, y)),
+      intensity: Math.min(intensidad, 10), // Máximo 10 para el tamaño
+      color: punto.color,
+      estado: punto.estado,
+    };
+  });
+
+  // Generar datos de tendencia (últimos 7 días por ejemplo)
+  // Como el backend no devuelve tendencia histórica, simularemos con los estados actuales
+  const trendData = estadisticas.stats_estados.map((estado, idx) => ({
+    value: estado.total,
+    label: estado.estado,
+  }));
+
   return (
     <div
       style={{
@@ -36,7 +224,7 @@ export default function DashboardContent({ heatmapPoints, trendData }) {
               letterSpacing: "-2px",
             }}
           >
-            156
+            {totalDenuncias}
           </div>
           <div
             style={{
@@ -46,7 +234,7 @@ export default function DashboardContent({ heatmapPoints, trendData }) {
               letterSpacing: "0.3px",
             }}
           >
-            Total
+            Total Denuncias
           </div>
         </div>
 
@@ -63,12 +251,12 @@ export default function DashboardContent({ heatmapPoints, trendData }) {
             style={{
               fontSize: "48px",
               fontWeight: "900",
-              color: "#10b981",
+              color: "#3b82f6",
               marginBottom: "8px",
               letterSpacing: "-2px",
             }}
           >
-            23
+            {getEstadoTotal("nueva")}
           </div>
           <div
             style={{
@@ -100,7 +288,7 @@ export default function DashboardContent({ heatmapPoints, trendData }) {
               letterSpacing: "-2px",
             }}
           >
-            45
+            {getEstadoTotal("en-proceso") + getEstadoTotal("en-revision")}
           </div>
           <div
             style={{
@@ -110,7 +298,7 @@ export default function DashboardContent({ heatmapPoints, trendData }) {
               letterSpacing: "0.3px",
             }}
           >
-            Proceso
+            En Proceso
           </div>
         </div>
 
@@ -127,12 +315,12 @@ export default function DashboardContent({ heatmapPoints, trendData }) {
             style={{
               fontSize: "48px",
               fontWeight: "900",
-              color: "#a855f7",
+              color: "#10b981",
               marginBottom: "8px",
               letterSpacing: "-2px",
             }}
           >
-            88
+            {getEstadoTotal("resuelta") + getEstadoTotal("cerrada")}
           </div>
           <div
             style={{
@@ -175,7 +363,7 @@ export default function DashboardContent({ heatmapPoints, trendData }) {
               letterSpacing: "-0.3px",
             }}
           >
-            Por Categoría
+            Denuncias por Categoría
           </h3>
           <div
             style={{
@@ -183,59 +371,97 @@ export default function DashboardContent({ heatmapPoints, trendData }) {
               alignItems: "center",
               justifyContent: "center",
               minHeight: "250px",
+              flexDirection: "column",
+              gap: "24px",
             }}
           >
-            <svg width="220" height="220" viewBox="0 0 220 220">
-              {/* Pie chart slices */}
-              <circle
-                cx="110"
-                cy="110"
-                r="90"
-                fill="none"
-                stroke="#a855f7"
-                strokeWidth="70"
-                strokeDasharray="198 628"
-                strokeDashoffset="0"
-                transform="rotate(-90 110 110)"
-              />
-              <circle
-                cx="110"
-                cy="110"
-                r="90"
-                fill="none"
-                stroke="#3b82f6"
-                strokeWidth="70"
-                strokeDasharray="126 628"
-                strokeDashoffset="-198"
-                transform="rotate(-90 110 110)"
-              />
-              <circle
-                cx="110"
-                cy="110"
-                r="90"
-                fill="none"
-                stroke="#10b981"
-                strokeWidth="70"
-                strokeDasharray="189 628"
-                strokeDashoffset="-324"
-                transform="rotate(-90 110 110)"
-              />
-              <circle
-                cx="110"
-                cy="110"
-                r="90"
-                fill="none"
-                stroke="#f59e0b"
-                strokeWidth="70"
-                strokeDasharray="94 628"
-                strokeDashoffset="-513"
-                transform="rotate(-90 110 110)"
-              />
-            </svg>
+            {categoriasConPorcentaje.length > 0 ? (
+              <>
+                <svg width="220" height="220" viewBox="0 0 220 220">
+                  {arcosPastel.map((cat, idx) => (
+                    <circle
+                      key={idx}
+                      cx="110"
+                      cy="110"
+                      r="90"
+                      fill="none"
+                      stroke={cat.color}
+                      strokeWidth="70"
+                      strokeDasharray={cat.strokeDasharray}
+                      strokeDashoffset={cat.strokeDashoffset}
+                      transform="rotate(-90 110 110)"
+                    />
+                  ))}
+                </svg>
+
+                {/* Leyenda */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                    width: "100%",
+                  }}
+                >
+                  {categoriasConPorcentaje.map((cat, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        padding: "8px 12px",
+                        background: "#f8fafc",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "16px",
+                          height: "16px",
+                          borderRadius: "4px",
+                          background: cat.color,
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: "13px",
+                          fontWeight: "700",
+                          color: "#475569",
+                          flex: 1,
+                        }}
+                      >
+                        {cat.categoria}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: "900",
+                          color: "#1e293b",
+                        }}
+                      >
+                        {cat.total}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "#94a3b8",
+                  fontStyle: "italic",
+                }}
+              >
+                No hay datos de categorías
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Line Chart - Tendencia */}
+        {/* Bar Chart - Por Estado */}
         <div
           style={{
             background: "white",
@@ -254,37 +480,87 @@ export default function DashboardContent({ heatmapPoints, trendData }) {
               letterSpacing: "-0.3px",
             }}
           >
-            Tendencia
+            Denuncias por Estado
           </h3>
           <div
             style={{
               display: "flex",
-              alignItems: "flex-end",
-              justifyContent: "space-between",
+              flexDirection: "column",
+              gap: "16px",
               minHeight: "250px",
-              padding: "20px 0",
-              position: "relative",
+              justifyContent: "center",
             }}
           >
-            <svg
-              width="100%"
-              height="200"
-              style={{ position: "absolute", top: "20px", left: 0 }}
-            >
-              <polyline
-                points="0,80 80,55 160,65 240,35 320,45 400,15 480,5"
-                fill="none"
-                stroke="#3b82f6"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              {trendData.map((point, idx) => {
-                const x = idx * 80;
-                const y = 200 - point.value * 2;
-                return <circle key={idx} cx={x} cy={y} r="5" fill="#3b82f6" />;
-              })}
-            </svg>
+            {estadisticas.stats_estados.length > 0 ? (
+              estadisticas.stats_estados.map((estado, idx) => {
+                const maxValue = Math.max(
+                  ...estadisticas.stats_estados.map((e) => e.total),
+                );
+                const porcentaje = (estado.total / maxValue) * 100;
+
+                return (
+                  <div key={idx}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginBottom: "6px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "13px",
+                          fontWeight: "800",
+                          color: "#475569",
+                        }}
+                      >
+                        {estado.estado}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: "900",
+                          color: "#1e293b",
+                        }}
+                      >
+                        {estado.total}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "12px",
+                        background: "#e2e8f0",
+                        borderRadius: "6px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: `${porcentaje}%`,
+                          height: "100%",
+                          background: estado.color,
+                          borderRadius: "6px",
+                          transition: "width 0.5s ease",
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "#94a3b8",
+                  fontStyle: "italic",
+                  textAlign: "center",
+                }}
+              >
+                No hay datos de estados
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -317,13 +593,13 @@ export default function DashboardContent({ heatmapPoints, trendData }) {
               letterSpacing: "-0.3px",
             }}
           >
-            Mapa de Calor
+            Mapa de Calor de Denuncias
           </h3>
         </div>
         <div
           style={{
             position: "relative",
-            height: "280px",
+            height: "400px",
             background: "linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)",
             borderRadius: "16px",
             border: "2px solid #10b981",
@@ -354,6 +630,24 @@ export default function DashboardContent({ heatmapPoints, trendData }) {
             <rect width="100%" height="100%" fill="url(#grid)" />
           </svg>
 
+          {/* Mensaje si no hay datos */}
+          {heatmapPoints.length === 0 && (
+            <div
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                fontSize: "16px",
+                fontWeight: "700",
+                color: "#059669",
+                textAlign: "center",
+              }}
+            >
+              No hay datos de ubicación
+            </div>
+          )}
+
           {/* Heatmap points */}
           {heatmapPoints.map((point, idx) => (
             <div
@@ -364,12 +658,13 @@ export default function DashboardContent({ heatmapPoints, trendData }) {
                 top: `${point.y}%`,
                 transform: "translate(-50%, -50%)",
               }}
+              title={`${point.estado} - Intensidad: ${point.intensity}`}
             >
               {/* Pulse effect */}
               <div
                 style={{
-                  width: `${point.intensity * 10}px`,
-                  height: `${point.intensity * 10}px`,
+                  width: `${point.intensity * 12}px`,
+                  height: `${point.intensity * 12}px`,
                   background: point.color,
                   borderRadius: "50%",
                   opacity: 0.3,
@@ -377,15 +672,15 @@ export default function DashboardContent({ heatmapPoints, trendData }) {
                   top: "50%",
                   left: "50%",
                   transform: "translate(-50%, -50%)",
-                  animation: `pulse ${2 + idx * 0.5}s infinite ease-in-out`,
+                  animation: `pulse ${2 + (idx % 3) * 0.5}s infinite ease-in-out`,
                 }}
               />
 
               {/* Main point */}
               <div
                 style={{
-                  width: `${point.intensity * 5}px`,
-                  height: `${point.intensity * 5}px`,
+                  width: `${point.intensity * 6}px`,
+                  height: `${point.intensity * 6}px`,
                   background: point.color,
                   borderRadius: "50%",
                   border: "3px solid white",
@@ -394,18 +689,34 @@ export default function DashboardContent({ heatmapPoints, trendData }) {
                   alignItems: "center",
                   justifyContent: "center",
                   fontWeight: "900",
-                  fontSize: "14px",
+                  fontSize: "12px",
                   color: "white",
                   position: "relative",
                   zIndex: 1,
                 }}
               >
-                {point.intensity}
+                {point.intensity > 1 ? point.intensity : ""}
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* CSS para animación de pulso */}
+      <style>
+        {`
+          @keyframes pulse {
+            0%, 100% {
+              transform: translate(-50%, -50%) scale(1);
+              opacity: 0.3;
+            }
+            50% {
+              transform: translate(-50%, -50%) scale(1.5);
+              opacity: 0.1;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }
