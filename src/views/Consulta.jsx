@@ -30,7 +30,7 @@ export default function Consulta() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:8081/api/denuncias/consultar/${searchCode.trim()}`
+        `http://127.0.0.1:8000/api/denuncias/consultar/${searchCode.trim()}`
       );
 
       if (response.ok) {
