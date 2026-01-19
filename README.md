@@ -1,16 +1,83 @@
-# React + Vite
+# Frontend - Sistema de Denuncias
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Requisitos
+- Node.js 18.0+
+- NPM 9.0+
 
-Currently, two official plugins are available:
+## Instalación
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+# 1. Instalar dependencias
+npm install
 
-## React Compiler
+# 2. Crear archivo .env en la raíz del proyecto
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```env
+REACT_APP_API_URL=http://localhost:8000/api
+```
 
-## Expanding the ESLint configuration
+Si usas **Vite**, crear `.env.local`:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```env
+VITE_API_URL=http://localhost:8000/api
+```
+
+```bash
+# 3. Iniciar servidor de desarrollo
+npm run dev
+
+```
+
+El frontend estará disponible en:  `http://localhost:5173` con Vite
+
+## Probar
+
+1. Asegúrate que el backend esté corriendo en `http://localhost:8000`
+2. Abre el navegador en `http://localhost:5173`
+3. Ve a "Consultar Denuncia"
+4. Ingresa el código: `DEN-2026-HXQ1CR`
+5. Haz clic en "Buscar"
+
+## Configurar Axios (src/services/api.js)
+
+```javascript
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 10000,
+});
+
+export default api;
+```
+
+## Build para Producción
+
+```bash
+# Generar build
+npm run build
+
+# Preview del build
+npm run preview
+```
+
+## Solución de Problemas
+
+```bash
+# Error de conexión con backend
+# Verifica que el backend esté corriendo:
+curl http://localhost:8000/api/denuncias
+
+# Error "Module not found"
+rm -rf node_modules package-lock.json
+npm install
+
+# Puerto en uso
+# Mata el proceso en puerto 3000:
+lsof -i :3000
+kill -9 <PID>
+
