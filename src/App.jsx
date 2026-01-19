@@ -3,11 +3,10 @@ import Navegation from "./views/Navegation";
 import AdminPanel from "./views/Admin";
 import NavegationAdmin from "./views/NavegationAdmin";
 import EstadisticasPublicas from "./views/EstadisticasPublicas";
-import Registro from "./views/registro";
-import Consulta from "./views/consulta";
+import Registro from "./views/Registro";
+import Consulta from "./views/Consulta";
 import { logout } from "./functions/authService";
 import "./App.css";
-import 'leaflet/dist/leaflet.css';
 
 export const ESTADOS_ORDENADOS = [
   "Nueva",
