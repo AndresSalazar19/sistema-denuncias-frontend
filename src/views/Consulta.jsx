@@ -28,7 +28,6 @@ export default function Consulta() {
     setDenuncia(null);
 
     try {
-      // CORRECCIÓN 1: Puerto 8000 y quitamos "/consultar" (ajusta según tu api.php)
       const response = await fetch(
         `http://localhost:8000/api/denuncias/${searchCode.trim()}`
       );

@@ -63,6 +63,7 @@ export default function Registro() {
     setEvidencias(evidencias.filter((ev) => ev.id !== id));
   };
 
+  
   const handleSubmit = async () => {
     // Validaciones
     if (!formData.titulo.trim()) {
@@ -89,7 +90,7 @@ export default function Registro() {
     const submitData = new FormData();
     submitData.append("titulo", formData.titulo);
     submitData.append("descripcion", formData.descripcion);
-    submitData.append("categoria", formData.categoria);
+    submitData.append("categoria_slug", formData.categoria); 
     submitData.append("ubicacion_lat", formData.ubicacion_lat);
     submitData.append("ubicacion_lng", formData.ubicacion_lng);
 
@@ -100,16 +101,21 @@ export default function Registro() {
 
     try {
       // Cambiar esta URL por tu endpoint de Laravel
-      const response = await fetch("http://localhost:8000/api/denuncias", {
-        method: "POST",
-        body: submitData,
-      });
+    const response = await fetch('http://localhost:8000/api/denuncias', {
+        method: 'POST',
+        headers: {
+            // 'Content-Type': 'multipart/form-data',  <-- ¡BORRA ESTA LÍNEA! (Es la culpable)
+            
+            // Solo deja esta para que Laravel te responda bonito en JSON
+            'Accept': 'application/json' 
+        },
+        body: submitData // Tu objeto con los datos y la foto
+    });
 
       if (response.ok) {
         const data = await response.json();
-        alert(
-          `✅ Denuncia registrada exitosamente!\n\nCódigo de seguimiento: ${data.codigo}\n\nGuarda este código para consultar tu denuncia.`
-        );
+        const codigoFinal = data.codigo || data.codigo_seguimiento;
+        alert(`✅ Denuncia registrada exitosamente!\n\nCódigo de seguimiento: ${codigoFinal}\n...`);
 
         // Resetear formulario
         setFormData({
