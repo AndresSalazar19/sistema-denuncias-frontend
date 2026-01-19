@@ -30,7 +30,7 @@ export default function Consulta() {
     try {
       // CORRECCIÓN 1: Puerto 8000 y quitamos "/consultar" (ajusta según tu api.php)
       const response = await fetch(
-        `http://localhost:8000/api/denuncias/${searchCode.trim()}`
+        `http://127.0.0.1:8000/api/denuncias/consultar/${searchCode.trim()}`
       );
 
       if (response.ok) {
