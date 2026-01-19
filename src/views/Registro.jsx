@@ -53,7 +53,10 @@ export default function Registro() {
           alert("La imagen debe pesar máximo 5MB");
           return;
         }
-        setEvidencias([...evidencias, { id: Date.now(), file, preview: URL.createObjectURL(file) }]);
+        setEvidencias([
+          ...evidencias,
+          { id: Date.now(), file, preview: URL.createObjectURL(file) },
+        ]);
       }
     };
     input.click();
@@ -89,13 +92,13 @@ export default function Registro() {
     const submitData = new FormData();
     submitData.append("titulo", formData.titulo);
     submitData.append("descripcion", formData.descripcion);
-    submitData.append("categoria", formData.categoria);
+    submitData.append("categoria_slug", formData.categoria);
     submitData.append("ubicacion_lat", formData.ubicacion_lat);
     submitData.append("ubicacion_lng", formData.ubicacion_lng);
 
     // Agregar imágenes
-    evidencias.forEach((ev, index) => {
-      submitData.append(`imagenes[${index}]`, ev.file);
+    evidencias.forEach((ev) => {
+      submitData.append("imagenes[]", ev.file);
     });
 
     try {
@@ -108,7 +111,7 @@ export default function Registro() {
       if (response.ok) {
         const data = await response.json();
         alert(
-          `✅ Denuncia registrada exitosamente!\n\nCódigo de seguimiento: ${data.codigo}\n\nGuarda este código para consultar tu denuncia.`
+          `✅ Denuncia registrada exitosamente!\n\nCódigo de seguimiento: ${data.codigo_seguimiento}\nGuarda este código para consultar tu denuncia.`,
         );
 
         // Resetear formulario
@@ -347,7 +350,14 @@ export default function Registro() {
               onFocus={(e) => (e.target.style.borderColor = "#667eea")}
               onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")}
             />
-            <p style={{ margin: "8px 0 0 0", fontSize: "13px", color: "#94a3b8", fontWeight: "500" }}>
+            <p
+              style={{
+                margin: "8px 0 0 0",
+                fontSize: "13px",
+                color: "#94a3b8",
+                fontWeight: "500",
+              }}
+            >
               {formData.descripcion.length}/1000 caracteres
             </p>
           </div>
@@ -451,7 +461,7 @@ export default function Registro() {
                 </div>
               )}
             </div>
-            
+
             {/* Mostrar coordenadas cuando estén seleccionadas */}
             {selectedLocation && (
               <div
@@ -463,8 +473,16 @@ export default function Registro() {
                   borderRadius: "10px",
                 }}
               >
-                <p style={{ margin: 0, fontSize: "13px", fontWeight: "700", color: "#0369a1" }}>
-                  Coordenadas: Lat {selectedLocation.lat.toFixed(6)} | Lng {selectedLocation.lng.toFixed(6)}
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "13px",
+                    fontWeight: "700",
+                    color: "#0369a1",
+                  }}
+                >
+                  Coordenadas: Lat {selectedLocation.lat.toFixed(6)} | Lng{" "}
+                  {selectedLocation.lng.toFixed(6)}
                 </p>
               </div>
             )}
@@ -566,7 +584,14 @@ export default function Registro() {
                 </button>
               )}
             </div>
-            <p style={{ margin: "8px 0 0 0", fontSize: "13px", color: "#94a3b8", fontWeight: "500" }}>
+            <p
+              style={{
+                margin: "8px 0 0 0",
+                fontSize: "13px",
+                color: "#94a3b8",
+                fontWeight: "500",
+              }}
+            >
               Máximo 3 imágenes, 5MB cada una
             </p>
           </div>
