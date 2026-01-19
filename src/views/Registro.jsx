@@ -105,13 +105,20 @@ export default function Registro() {
       // Cambiar esta URL por tu endpoint de Laravel
       const response = await fetch("http://localhost:8000/api/denuncias", {
         method: "POST",
-        body: submitData,
+        headers: {
+          // 'Content-Type': 'multipart/form-data',  <-- ¡BORRA ESTA LÍNEA! (Es la culpable)
+
+          // Solo deja esta para que Laravel te responda bonito en JSON
+          Accept: "application/json",
+        },
+        body: submitData, // Tu objeto con los datos y la foto
       });
 
       if (response.ok) {
         const data = await response.json();
+        const codigoFinal = data.codigo || data.codigo_seguimiento;
         alert(
-          `✅ Denuncia registrada exitosamente!\n\nCódigo de seguimiento: ${data.codigo_seguimiento}\nGuarda este código para consultar tu denuncia.`,
+          `✅ Denuncia registrada exitosamente!\n\nCódigo de seguimiento: ${codigoFinal}\n...`,
         );
 
         // Resetear formulario
