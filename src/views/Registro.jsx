@@ -18,8 +18,8 @@ export default function Registro() {
   const categorias = [
     { id: "infraestructura", label: "Infraestructura", icon: "🏗️" },
     { id: "seguridad", label: "Seguridad", icon: "🚨" },
-    { id: "servicios_publicos", label: "Servicios Públicos", icon: "💡" },
-    { id: "medio_ambiente", label: "Medio Ambiente", icon: "🌱" },
+    { id: "servicios-publicos", label: "Servicios Públicos", icon: "💡" },
+    { id: "medio-ambiente", label: "Medio Ambiente", icon: "🌱" },
     { id: "corrupcion", label: "Corrupción", icon: "⚖️" },
   ];
 
@@ -48,9 +48,9 @@ export default function Registro() {
     input.onchange = (e) => {
       const file = e.target.files[0];
       if (file) {
-        // Validar tamaño (máximo 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          alert("La imagen debe pesar máximo 5MB");
+        // Validar tamaño (máximo 20MB)
+        if (file.size > 20 * 1024 * 1024) {
+          alert("La imagen debe pesar máximo 20MB");
           return;
         }
         setEvidencias([...evidencias, { id: Date.now(), file, preview: URL.createObjectURL(file) }]);
