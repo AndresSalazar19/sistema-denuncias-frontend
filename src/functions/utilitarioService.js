@@ -28,7 +28,7 @@ export async function getDenuncias() {
     }),
     descripcion: d.descripcion,
     ubicacion: d.ubicacion_direccion ?? "",
-    evidencias: [], // aún no vienen del backend
+    evidencias: d.evidencias ?? [], 
     funcionario: d.responsable_id ?? "",
   }));
 

@@ -512,53 +512,67 @@ export default function DetalleDenuncia({
                 gap: "8px",
               }}
             >
-              📷 Evidencias:
+              <ImageIcon size={16} strokeWidth={3} /> EVIDENCIAS
             </h3>
-            <div
-              style={{
-                display: "flex",
-                gap: "12px",
-                flexWrap: "wrap",
-              }}
-            >
-              {selectedDenuncia.evidencias.length > 0 ? (
-                selectedDenuncia.evidencias.map((ev, idx) => (
-                  <div
+            {selectedDenuncia.evidencias && selectedDenuncia.evidencias.length > 0 ? (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+                  gap: "12px",
+                }}
+              >
+                {selectedDenuncia.evidencias.map((ev, idx) => (
+                  <a
                     key={idx}
+                    href={ev.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     style={{
-                      width: "120px",
-                      height: "100px",
-                      background: "#fef3c7",
+                      display: "block",
+                      aspectRatio: "1",
                       borderRadius: "12px",
-                      border: "2px solid #fbbf24",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "13px",
-                      fontWeight: "800",
-                      color: "#92400e",
-                      flexDirection: "column",
-                      gap: "6px",
+                      overflow: "hidden",
+                      border: "2px solid #e2e8f0",
+                      transition: "all 0.3s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = "#0ea5e9";
+                      e.currentTarget.style.boxShadow = "0 4px 12px rgba(14, 165, 233, 0.3)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "#e2e8f0";
+                      e.currentTarget.style.boxShadow = "none";
                     }}
                   >
-                    <ImageIcon size={24} color="#92400e" strokeWidth={2.5} />
-                    {ev}
-                  </div>
-                ))
-              ) : (
-                <div
-                  style={{
-                    padding: "16px",
-                    color: "#94a3b8",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    fontStyle: "italic",
-                  }}
-                >
-                  Sin evidencias
-                </div>
-              )}
-            </div>
+                    <img
+                      src={ev.file_path}
+                      alt={`Evidencia ${idx + 1}`}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        transition: "transform 0.3s",
+                      }}
+                      onMouseOver={(e) => (e.target.style.transform = "scale(1.1)")}
+                      onMouseOut={(e) => (e.target.style.transform = "scale(1)")}
+                    />
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div
+                style={{
+                  padding: "16px",
+                  color: "#94a3b8",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  fontStyle: "italic",
+                }}
+              >
+                Sin evidencias
+              </div>
+            )}
           </div>
 
           {/* Ubicación */}

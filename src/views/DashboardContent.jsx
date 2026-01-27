@@ -583,7 +583,7 @@ export default function DashboardContent() {
             marginBottom: "24px",
           }}
         >
-          <span style={{ fontSize: "20px" }}>🔥</span>
+          <span style={{ fontSize: "20px" }}></span>
           <h3
             style={{
               margin: 0,
